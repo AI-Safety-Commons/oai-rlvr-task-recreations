@@ -6,3 +6,5 @@ RUN apt-get update \
 
 WORKDIR /workspace
 
+COPY WEBPAGES.md /workspace/WEBPAGES.md
+COPY notes /workspace/notes

@@ -45,3 +45,4 @@ def test_additional_tool_constructs() -> None:
 
     task = fast_follow_question_bench(additional_tools=[message_board()])
     assert len(task.dataset) == 16
+
