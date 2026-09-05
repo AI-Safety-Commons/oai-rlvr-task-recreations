@@ -14,6 +14,8 @@ services:
       context: .
       dockerfile: docker/source.Dockerfile
     command: ["python", "/app/site_server.py"]
+    environment:
+      FFQB_SOURCE_AVAILABLE: "${SAMPLE_METADATA_SOURCE_AVAILABLE:-true}"
     healthcheck:
       test:
         [
@@ -31,4 +33,3 @@ services:
 networks:
   benchmark:
     internal: true
-

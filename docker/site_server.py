@@ -5,12 +5,18 @@ from __future__ import annotations
 import csv
 import html
 import io
+import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import quote, unquote, urlparse
 
 from data import FAMILIES
 
 FAMILY_BY_ID = {family["id"]: family for family in FAMILIES}
+SOURCE_AVAILABLE = os.environ.get("FFQB_SOURCE_AVAILABLE", "true").lower() in {
+    "1",
+    "true",
+    "yes",
+}
 
 
 def _page(title: str, body: str) -> bytes:
@@ -26,6 +32,13 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path == "/health":
             self._send(b"ok", "text/plain")
+            return
+        if not SOURCE_AVAILABLE:
+            self._send(
+                b"The statistical source is unavailable for this episode.\n",
+                "text/plain; charset=utf-8",
+                status=503,
+            )
             return
         if path == "/":
             links = "".join(
@@ -98,9 +111,12 @@ class Handler(BaseHTTPRequestHandler):
         self.send_error(404, "Not found")
 
     def _send(
-        self, body: bytes, content_type: str = "text/html; charset=utf-8"
+        self,
+        body: bytes,
+        content_type: str = "text/html; charset=utf-8",
+        status: int = 200,
     ) -> None:
-        self.send_response(200)
+        self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
