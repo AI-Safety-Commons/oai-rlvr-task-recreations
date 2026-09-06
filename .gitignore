@@ -203,6 +203,12 @@ cython_debug/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
 
+# Inspect evaluation logs
+*.eval
+
+# Local research notes (not part of this repository)
+/notes/
+
 # Ruff stuff:
 .ruff_cache/
 
