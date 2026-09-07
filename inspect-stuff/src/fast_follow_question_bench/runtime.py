@@ -156,8 +156,8 @@ def search(
             limit: Maximum number of results (1-20).
 
         Returns:
-            JSON results containing title, URL, source, and—when enabled—a
-            matching text snippet.
+            JSON results containing title, URL, and—when enabled—a matching
+            text snippet.
         """
         database_path = database or os.environ.get("SEARCH_DATABASE")
         boosts = source_boosts or json.loads(
@@ -174,7 +174,7 @@ def search(
                 connection = sqlite3.connect(f"file:{database_path}?mode=ro", uri=True)
                 connection.row_factory = sqlite3.Row
                 try:
-                    columns = "url,title,source,"
+                    columns = "url,title,"
                     if search_snippets:
                         columns += "snippet(pages,2,'[',']',' … ',24) snippet,"
                     boost_cases = " ".join("WHEN ? THEN ?" for _ in boosts)

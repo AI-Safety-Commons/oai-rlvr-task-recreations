@@ -6,6 +6,8 @@ services:
       - "${BOARD_HOST_PORT:-3000}:80"
     volumes:
       - "${BOARD_DATA_DIR:-./data}:/data"
+      - "./server.crt:/tls/server.crt:ro"
+      - "./server.key:/tls/server.key:ro"
     networks:
       coordination:
         aliases:

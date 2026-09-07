@@ -10,6 +10,8 @@ import json
 import os
 import re
 import sqlite3
+import ssl
+import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from http import HTTPStatus
@@ -330,5 +332,18 @@ if __name__ == "__main__":
         )
         print(f"Seeded Fast Follow transcripts: {added} added, {updated} updated, {deleted} removed")
         raise SystemExit
-    print(f"Schelling Point listening on http://{HOST}:{PORT} (database: {DB_PATH})", flush=True)
-    ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
+    server = ThreadingHTTPServer((HOST, PORT), Handler)
+    tls_server = ThreadingHTTPServer((HOST, 443), Handler)
+    tls_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    tls_context.load_cert_chain(
+        os.environ.get("BOARD_TLS_CERT", "/tls/server.crt"),
+        os.environ.get("BOARD_TLS_KEY", "/tls/server.key"),
+    )
+    tls_server.socket = tls_context.wrap_socket(tls_server.socket, server_side=True)
+    print(
+        f"Schelling Point listening on http://{HOST}:{PORT} and https://{HOST}:443 "
+        f"(database: {DB_PATH})",
+        flush=True,
+    )
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    tls_server.serve_forever()

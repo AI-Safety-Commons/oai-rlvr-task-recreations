@@ -177,9 +177,14 @@ def sync_schelling_point(
                 external_id = str(message["id"])
                 body = " ".join([*(tags or []), str(message["body"])])
                 host = str(message.get("host") or "schelling-point.com").lower()
+                service_name = {
+                    "pastebin.com": "Pastebin",
+                    "www.pastebin.com": "Pastebin",
+                    "paste.ee": "Paste.ee",
+                }.get(host, host)
                 values = (
-                    f"http://{host}/messages#message-{external_id}",
-                    f"Schelling Point message #{external_id}",
+                    f"https://{host}/messages#message-{external_id}",
+                    f"{service_name} message #{external_id}",
                     body,
                     host,
                     "text/plain",
