@@ -1,0 +1,2 @@
+mitmproxy>=11,<13
+openai>=1.50,<3

@@ -1,8 +1,0 @@
-{% extends "base.html" %}{% block content %}
-<h1>Recent changes</h1>
-<p class="help">Latest edits made through this overlay. This HTML table is also the read surface used by the Inspect integration.</p>
-<table class="changes"><thead><tr><th>Revision</th><th>UTC time</th><th>Page</th><th>User</th><th>Summary</th></tr></thead><tbody>
-{% for rev in revisions %}<tr><td><a href="{{ url_for('diff', book=rev.book, title=rev.title|replace(' ', '_'), new=rev.id) }}">#{{ rev.id }}</a></td><td>{{ rev.created_at }}</td><td><a href="{{ url_for('article', book=rev.book, title=rev.title|replace(' ', '_')) }}">{{ rev.title }}</a></td><td>{{ rev.username }}</td><td>{{ rev.summary }}</td></tr>{% else %}<tr><td colspan="5"><i>No edits yet.</i></td></tr>{% endfor %}
-</tbody></table>
-{% endblock %}
-
