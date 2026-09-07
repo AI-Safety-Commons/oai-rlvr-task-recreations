@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block content %}
+<h1>Difference between revisions</h1>
+<div class="diff-meta"><div><b>Older revision</b><br>{% if older %}{{ older.created_at }} by {{ older.username }}{% else %}No prior revision{% endif %}</div><div><b>Newer revision</b><br>{{ newest.created_at }} by {{ newest.username }}</div></div>
+<p><strong>Edit summary:</strong> {{ newest.summary or 'No edit summary' }}</p>
+<div class="diff-wrap">{{ diff_table }}</div>
+{% endblock %}
+

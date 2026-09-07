@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }} — Wikimedia</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='wiki.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <a class="wordmark" href="{{ url_for('index') }}"><span>W</span><b>Wikimedia</b></a>
+    <nav aria-label="Account">
+      {% if g.user %}<span>{{ g.user.username }}</span>
+      <form action="{{ url_for('logout') }}" method="post"><button class="link-button">Log out</button></form>
+      {% else %}<a href="{{ url_for('login') }}">Log in</a><a href="{{ url_for('register') }}">Create account</a>{% endif %}
+    </nav>
+  </header>
+  <div class="layout">
+    <aside>
+      <a href="{{ url_for('index') }}">Main page</a>
+      <a href="{{ url_for('changes') }}">Recent changes</a>
+      <hr>
+      <p>Offline source</p>
+      <code>{{ book }}</code>
+      <p class="muted">Edits are stored only in this overlay.</p>
+    </aside>
+    <main>
+      {% if encoded_title is defined %}
+      <div class="tabs">
+        <div><a class="{{ 'selected' if active == 'article' }}" href="{{ url_for('article', book=book, title=encoded_title) }}">Article</a><a class="{{ 'selected' if active == 'talk' }}" href="{{ url_for('talk', book=book, title=encoded_title) }}">Talk</a></div>
+        <div><a class="{{ 'selected' if active == 'edit' }}" href="{{ url_for('edit', book=book, title=encoded_title) }}">Edit</a><a class="{{ 'selected' if active == 'history' }}" href="{{ url_for('history', book=book, title=encoded_title) }}">View history</a></div>
+      </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <footer>Content is served from an offline Wikimedia collection with local overlay revisions.</footer>
+</body>
+</html>

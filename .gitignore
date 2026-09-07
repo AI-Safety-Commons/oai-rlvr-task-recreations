@@ -205,9 +205,20 @@ tempCodeRunnerFile.py
 
 # Inspect evaluation logs
 *.eval
+inspect-bundle*/
+inspect-bundle*.tar.gz
 
 # Local research notes (not part of this repository)
 /notes/
+
+# Generated offline-internet corpus (manifests remain tracked)
+/internet-download/data/
+/internet-download/benchmark-data/
+/internet-download/*.sqlite3
+/schelling-point/data/
+/inspect-stuff/notes/
+/inspect-stuff/logs-*/
+/inspect-stuff/inspect-bundle*/
 
 # Ruff stuff:
 .ruff_cache/

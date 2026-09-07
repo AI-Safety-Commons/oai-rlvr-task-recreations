@@ -1,0 +1,41 @@
+[req]
+distinguished_name = subject
+prompt = no
+x509_extensions = ca_extensions
+
+[subject]
+CN = RLVR Benchmark CA
+
+[ca_extensions]
+basicConstraints = critical,CA:TRUE
+keyUsage = critical,keyCertSign,cRLSign
+subjectKeyIdentifier = hash
+
+[server_req]
+distinguished_name = server_subject
+prompt = no
+req_extensions = server_extensions
+
+[server_subject]
+CN = api.worldbank.org
+
+[server_extensions]
+basicConstraints = critical,CA:FALSE
+keyUsage = critical,digitalSignature,keyEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @provider_names
+
+[provider_names]
+DNS.1 = data.worldbank.org
+DNS.2 = api.worldbank.org
+DNS.3 = datausa.io
+DNS.4 = api.datausa.io
+DNS.5 = stats.oecd.org
+DNS.6 = sdmx.oecd.org
+DNS.7 = ilostat.ilo.org
+DNS.8 = statistics
+DNS.9 = localhost
+DNS.10 = wikipedia.org
+DNS.11 = www.wikipedia.org
+DNS.12 = en.wikipedia.org
+IP.1 = 127.0.0.1

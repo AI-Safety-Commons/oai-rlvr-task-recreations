@@ -1,0 +1,22 @@
+services:
+  stackexchange:
+    build: .
+    init: true
+    ports:
+      - "${STACK_HOST_PORT:-3020}:80"
+    environment:
+      STACK_SECRET: "${STACK_SECRET:-cheap-local-development-secret}"
+      STACK_PORT: "80"
+      STACK_DEFAULT_SITE: "${STACK_DEFAULT_SITE:-stackoverflow.com}"
+    volumes:
+      - "${STACK_DATA_DIR:-./data}:/data"
+      - "${STACK_ARCHIVE_DIR:-./archive}:/archive:ro"
+    networks:
+      coordination:
+        aliases: [stackexchange, stackexchange.com]
+    restart: unless-stopped
+
+networks:
+  coordination:
+    external: true
+    name: ${COORDINATION_NETWORK:-ffqb-shared}

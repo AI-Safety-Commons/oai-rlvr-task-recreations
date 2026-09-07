@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block content %}
+<h1>{{ title }}</h1>
+<div class="subtitle">From the local Kiwix editing overlay</div>
+{% if revision %}<div class="revision-note">Latest overlay revision: <a href="{{ url_for('diff', book=book, title=encoded_title, new=revision.id) }}">#{{ revision.id }}</a>, saved {{ revision.created_at }} by {{ revision.username }}</div>{% endif %}
+<article class="article-body">{{ content }}</article>
+{% endblock %}
+

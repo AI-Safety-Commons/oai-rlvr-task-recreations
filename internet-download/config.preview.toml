@@ -1,0 +1,47 @@
+[commoncrawl]
+crawl = "CC-MAIN-2026-17"
+output = "data/commoncrawl-preview"
+workers = 8
+max_total_bytes = 262144000
+targets_file = "sites.csv"
+max_records_per_target = 5
+contact_email = "concurrentsquared@concurrentsquared.com"
+index_threads = 2
+download_request_rate_per_second = 8.0
+
+[[commoncrawl.targets]]
+url = "docs.python.org"
+match_type = "domain"
+max_records = 50
+
+[[commoncrawl.targets]]
+url = "worldbank.org"
+match_type = "domain"
+max_records = 50
+
+[[commoncrawl.targets]]
+url = "oecd.org"
+match_type = "domain"
+max_records = 50
+
+[[commoncrawl.targets]]
+url = "ilo.org"
+match_type = "domain"
+max_records = 50
+
+[[commoncrawl.targets]]
+url = "datausa.io"
+match_type = "domain"
+max_records = 50
+
+[search]
+documents = "data/commoncrawl-preview/documents.jsonl"
+dataset_documents = "data/commoncrawl-preview/datasets.jsonl"
+overlay_documents = "data/commoncrawl-preview/overlay.jsonl"
+overlay_database = "../kiwix-overlay/data/overlay.db"
+overlay_cursor = "data/commoncrawl-preview/overlay.cursor"
+include_overlay_history = false
+database = "data/commoncrawl-preview/search.sqlite3"
+max_chars_per_document = 250000
+dataset_rows_per_document = 100
+kiwix_url = "http://127.0.0.1:8090"

@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block content %}
+<h1>Revision history of “{{ title }}”</h1>
+<p class="help">Each row is a saved local state. Kiwix’s imported version is kept as the baseline.</p>
+{% if revisions %}<ol class="history-list">
+{% for rev in revisions %}<li><a href="{{ url_for('diff', book=book, title=encoded_title, new=rev.id) }}">{{ rev.created_at }}</a> <span class="minor">({{ rev.html|length }} bytes)</span> <b>{{ rev.username }}</b> <span class="comment">({{ rev.summary or 'no edit summary' }})</span>{% if rev.is_snapshot %} <span class="tag">Kiwix baseline</span>{% endif %}</li>{% endfor %}
+</ol>{% else %}<div class="empty"><h2>No local revisions</h2><p>This article is still read directly from Kiwix. Its first edit will create a baseline revision.</p></div>{% endif %}
+{% endblock %}
+
