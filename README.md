@@ -23,6 +23,26 @@ I (@ConcurrentSquared) currently use the command:
 ```
 to run it.
 
+Those are also the checked-in defaults in `inspect-stuff/run.yaml`. From the
+repository root, the complete default setup is:
+
+```bash
+./inspect-stuff/setup.sh
+```
+
+By default, this command makes network requests and downloads both:
+
+1. The benchmark data sources.
+2. The configured bounded Common Crawl subset.
+
+Together these downloads are expected to require approximately 5 GB with the
+repository's default configuration. Setup then prepares the search index and
+starts the shared Docker services. It does **not** download Kiwix or package
+mirrors unless those optional stages are requested; see `inspect-stuff/README.md`
+for configuration options. The script displays this download notice and asks
+for confirmation before installing or downloading anything. After reviewing
+the notice, automated environments can provide that approval with `--yes`.
+
 You should probably your coding agents for more detail on how to set up the weird Docker network typology, 
 etc. that my coding agents have come up with though; right now I am trying to get this simplified, written down,
 and probably done with a useful bash script, but for right now it's just very weird to set this up (I mean

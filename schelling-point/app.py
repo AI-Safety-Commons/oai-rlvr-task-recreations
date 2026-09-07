@@ -118,6 +118,21 @@ def seed_fast_follow(
             if page_key in page_families and revision.get("body"):
                 latest[page_key] = revision
 
+    # A transcript can be copied to more than one coordination page.  Page
+    # provenance differs in that case, so deduplicate the source text before
+    # adding provenance and before applying the requested message count.  The
+    # lexical page key makes the retained copy independent of JSONL ordering.
+    deduplicated: dict[str, dict[str, object]] = {}
+    seen_bodies: set[str] = set()
+    for page_key in sorted(latest):
+        body = str(latest[page_key]["body"])
+        canonical_body = body.strip()
+        if canonical_body in seen_bodies:
+            continue
+        seen_bodies.add(canonical_body)
+        deduplicated[page_key] = latest[page_key]
+    latest = deduplicated
+
     if count is not None:
         selected = sorted(
             latest,

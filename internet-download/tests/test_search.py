@@ -123,6 +123,28 @@ def test_parse_search_query_supports_quoted_sites() -> None:
     )
 
 
+def test_query_index_treats_dots_as_text(tmp_path: Path) -> None:
+    documents = tmp_path / "documents.jsonl"
+    documents.write_text(
+        json.dumps(
+            {
+                "url": "https://example.test/report",
+                "title": "U.S. population",
+                "body": "The reported value was 76.1 percent.",
+                "domain": "example.test",
+                "content_type": "text/plain",
+                "timestamp": "",
+            }
+        )
+        + "\n"
+    )
+    database = tmp_path / "search.sqlite3"
+    build_index(documents, database)
+
+    for query in ("U.S.", "76.1", "percent."):
+        assert query_index(database, query)[0]["url"] == "https://example.test/report"
+
+
 def test_extract_dataset_csv_and_zip_into_shared_index(tmp_path: Path) -> None:
     root = tmp_path / "benchmark-data"
     files = root / "files"

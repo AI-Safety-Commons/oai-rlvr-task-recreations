@@ -80,6 +80,14 @@ def parse_search_query(query: str) -> tuple[str, list[str]]:
     return text, sites
 
 
+def _literal_fts_query(query: str) -> str:
+    """Turn natural-language input into safe, implicit-AND FTS5 phrases."""
+
+    return " ".join(
+        f'"{term.replace(chr(34), chr(34) * 2)}"' for term in query.split()
+    )
+
+
 def _site_clause(site: str) -> tuple[str, list[str]]:
     normalized = site.strip().rstrip("/")
     parsed = urlparse(normalized if "://" in normalized else f"//{normalized}")
@@ -106,9 +114,10 @@ def query_index(
     text, sites = parse_search_query(query)
     clauses: list[str] = []
     parameters: list[str | int] = []
-    if text:
+    fts_query = _literal_fts_query(text)
+    if fts_query:
         clauses.append("pages MATCH ?")
-        parameters.append(text)
+        parameters.append(fts_query)
     site_clauses: list[str] = []
     site_parameters: list[str] = []
     for site in sites:
@@ -119,8 +128,10 @@ def query_index(
         clauses.append(f"({' OR '.join(site_clauses)})")
         parameters.extend(site_parameters)
     where = " AND ".join(clauses) if clauses else "1"
-    ranking = "bm25(pages,0.0,8.0,1.0,0.0,0.0,0.0,0.0)" if text else "0.0"
-    candidate_limit = max(limit * 10, 100) if source_boosts and text else limit
+    ranking = (
+        "bm25(pages,0.0,8.0,1.0,0.0,0.0,0.0,0.0)" if fts_query else "0.0"
+    )
+    candidate_limit = max(limit * 10, 100) if source_boosts and fts_query else limit
     parameters.append(candidate_limit)
     connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True)
     connection.row_factory = sqlite3.Row
@@ -133,7 +144,7 @@ def query_index(
             parameters,
         ).fetchall()
         results = [dict(row) for row in rows]
-        if source_boosts and text:
+        if source_boosts and fts_query:
             for result in results:
                 boost = max(0.01, float(source_boosts.get(result["source"], 1.0)))
                 result["score"] = float(result["score"]) * boost
