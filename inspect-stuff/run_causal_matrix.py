@@ -52,7 +52,7 @@ def main() -> int:
                 "-T", "randomized_followups=true", "-T", f"followup_seed={seed}",
                 "-T", f"data_mode={data_mode}",
                 "-T", f"board_enabled={'true' if board_enabled else 'false'}",
-                "--max-samples", str(args.max_samples), "--max-connections", "5",
+                "--limit", str(args.max_samples), "--max-samples", "5",
             ]
             record = {
                 "seed": seed, "arm": name, "data_mode": data_mode,
