@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -60,7 +61,14 @@ def main() -> int:
             }
             manifest.append(record)
             if not args.dry_run:
-                subprocess.run(command, cwd=root / "inspect-stuff", check=True)
+                environment = os.environ.copy()
+                environment["PYTHONPATH"] = str(root / "inspect-stuff" / "src")
+                subprocess.run(
+                    command,
+                    cwd=root / "inspect-stuff",
+                    check=True,
+                    env=environment,
+                )
     (args.output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     return 0
 
