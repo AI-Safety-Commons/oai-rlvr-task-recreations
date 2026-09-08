@@ -231,3 +231,43 @@ def test_per_container_dataset_deny_list(tmp_path: Path, monkeypatch) -> None:
     assert population_entry["available"] is False
     assert population_entry["download_url"] is None
     assert health.status == 200
+
+
+def test_datausa_deny_list_covers_aliases_and_unqualified_queries(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """A denied cube cannot be recovered through another Data USA route."""
+
+    monkeypatch.setenv("DATA_SERVICE_DENY", "datausa:acs_yg_total_population_5")
+    service = _fixture(tmp_path)
+    query = (
+        "/api/data?cube=acs_yg_total_population_5&drilldowns=State&"
+        "measures=Population"
+    )
+
+    for host in ("datausa.io", "api.datausa.io"):
+        assert service.route("GET", query, host).status == 404
+
+    # Omitting cube used to select the matching planned entry anyway.
+    assert service.route(
+        "GET", "/api/data?drilldowns=State&measures=Population", "datausa.io"
+    ).status == 404
+
+
+def test_datausa_cube_schema_and_raw_file_honor_deny_list(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Schema and raw-file discovery must not disclose a denied cube."""
+
+    _write(tmp_path / "files/datausa/cubes/acs_yg_total_population_5.json", "{}")
+    monkeypatch.setenv("DATA_SERVICE_DENY", "datausa:acs_yg_total_population_5")
+    service = _fixture(tmp_path)
+
+    assert service.route(
+        "GET", "/tesseract/cubes/acs_yg_total_population_5", "api.datausa.io"
+    ).status == 404
+    assert service.route(
+        "GET",
+        "/files/datausa/cubes/acs_yg_total_population_5.json",
+        "api.datausa.io",
+    ).status == 404

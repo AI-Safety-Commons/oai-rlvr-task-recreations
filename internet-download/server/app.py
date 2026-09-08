@@ -229,6 +229,9 @@ class DatasetService:
             return self._error(404, "File not found")
         if self.download_denied(relative):
             return self._error(404, "File not found")
+        datausa_cube = re.fullmatch(r"datausa/cubes/([^/]+)\.json", relative)
+        if datausa_cube and self.is_denied("datausa", datausa_cube.group(1)):
+            return self._error(404, "File not found")
         entry = next((item for item in self.plan if item["path"] == relative), None)
         if entry is not None and self.entry_denied(entry):
             return self._error(404, "File not found")
@@ -340,6 +343,8 @@ class DatasetService:
         cube_match = re.fullmatch(r"/tesseract/cubes/([^/]+)", normalized_path)
         if cube_match:
             cube = cube_match.group(1)
+            if self.is_denied("datausa", cube):
+                return self._error(404, f"Cube {cube} is unavailable")
             candidate = self.files_root / "datausa" / "cubes" / f"{cube}.json"
             if candidate.is_file():
                 return Response(200, "application/json; charset=utf-8", candidate)
@@ -362,11 +367,15 @@ class DatasetService:
         ):
             return self._error(404, "This Data USA dataset is unavailable")
         exact = self.by_url.get((normalized_path, _canonical_query(raw_query)))
+        if exact and self.entry_denied(exact):
+            return self._error(404, "This Data USA dataset is unavailable")
         if exact and self.local_path(exact):
             return self._entry_response(exact)
         entry = self._best_datausa_entry(query)
         if entry is None:
             return self._error(404, "No compatible Data USA projection is available")
+        if self.entry_denied(entry):
+            return self._error(404, "This Data USA dataset is unavailable")
         payload = self._read_json(entry)
         rows = list(payload.get("data", []))
         rows = self._filter_datausa(rows, query)
