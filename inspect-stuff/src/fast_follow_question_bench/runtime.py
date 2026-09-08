@@ -433,7 +433,7 @@ def fast_follow_dialogue(
                 full_history.append(supplemental)
             full_history.extend(generated_messages)
             state.messages = full_history
-            await compact.record_output(model_input, state.output)
+            compact.record_output(state.output)
             return state
 
         next_round_starts_at = runtime.task_time
