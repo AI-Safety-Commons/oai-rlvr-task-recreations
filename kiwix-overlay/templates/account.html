@@ -1,7 +1,0 @@
-{% extends "base.html" %}{% block content %}
-<div class="account-card"><h1>{{ 'Create account' if mode == 'register' else 'Log in' }}</h1>
-{% if mode == 'register' %}<p>No email address or verification is required.</p>{% endif %}
-{% if error %}<div class="error">{{ error }}</div>{% endif %}
-<form method="post"><input type="hidden" name="next" value="{{ next }}"><label>Username<input name="username" autocomplete="username" required></label><label>Password<input type="password" name="password" autocomplete="{{ 'new-password' if mode == 'register' else 'current-password' }}" required></label><button class="primary">{{ 'Create account' if mode == 'register' else 'Log in' }}</button></form>
-</div>{% endblock %}
-

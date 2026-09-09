@@ -1,3 +1,0 @@
-{% extends "base.html" %}{% block content %}<h1>All Stack Exchange sites</h1><p>Pick a community. Imported dump data and new local activity live together.</p>
-<div class="cards">{% for site in sites %}<a class="card" href="{{ url_for('questions',slug=site.slug) }}"><b>{{ site.name }}</b><small>{{ site.slug }} · {{ site.question_count }} questions</small></a>{% endfor %}</div>{% endblock %}
-

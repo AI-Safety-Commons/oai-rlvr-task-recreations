@@ -1,0 +1,4 @@
+mitmproxy>=11,<13
+openai>=1.50,<3
+httpx>=0.27,<1
+fastembed>=0.7,<1
