@@ -151,6 +151,7 @@ activemq-data/
 .env
 .envrc
 .venv
+.venv-*/
 /inspect-stuff/gateway-state*/
 env/
 venv/
@@ -211,6 +212,10 @@ inspect-bundle*.tar.gz
 
 # Local research notes (not part of this repository)
 /notes/
+/inspect-stuff/analysis/
+
+# macOS metadata
+.DS_Store
 
 # Generated offline-internet corpus (manifests remain tracked)
 /inspect-stuff/seed-data/pages.json
@@ -219,6 +224,7 @@ inspect-bundle*.tar.gz
 /internet-download/*.sqlite3
 /schelling-point/data/
 /inspect-stuff/notes/
+/inspect-stuff/logs/
 /inspect-stuff/logs-*/
 /inspect-stuff/inspect-bundle*/
 
