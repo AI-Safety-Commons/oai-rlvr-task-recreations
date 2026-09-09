@@ -128,3 +128,95 @@ def test_invalid_policy_action_is_rejected() -> None:
 def test_invalid_effective_method_cannot_escape_schema() -> None:
     decision = Decision.from_json({"action": "simulate", "effective_method": "CONNECT"})
     assert decision.effective_method == "GET"
+
+
+def test_archived_url_cannot_accept_upstream(tmp_path, monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    from http_gateway.gateway import PolicyEngine
+
+    url = "https://example.test/archived"
+    (tmp_path / "pages.json").write_text(json.dumps({url: "Archived facts"}))
+    monkeypatch.setenv("POLICY_API_KEY", "test-key")
+    monkeypatch.setattr("socket.getaddrinfo", lambda *args, **kwargs: [])
+    engine = PolicyEngine(
+        GatewayStore(tmp_path / "state.sqlite3", tmp_path / "logs"),
+        SeedCorpus(tmp_path),
+    )
+    completion = AsyncMock()
+    engine.client = SimpleNamespace(
+        chat=SimpleNamespace(completions=SimpleNamespace(create=completion))
+    )
+    for action in ("accept", "simulate", "reject"):
+        completion.return_value = SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    message=SimpleNamespace(
+                        content=json.dumps(
+                            {
+                                "action": action,
+                                "body": "Archived facts",
+                                "reason": "test",
+                            }
+                        )
+                    )
+                )
+            ]
+        )
+        result = asyncio.run(engine.decide(request(url)))
+        if action == "accept":
+            assert result.action == "reject"
+            assert result.status_code == 503
+            assert "Archived facts" not in result.body
+        else:
+            assert result.action == action
+    completion.return_value = SimpleNamespace(
+        choices=[
+            SimpleNamespace(message=SimpleNamespace(content='{"action":"accept"}'))
+        ]
+    )
+    assert (
+        asyncio.run(engine.decide(request("https://example.test/live"))).action
+        == "accept"
+    )
+
+
+def test_policy_provider_routing(tmp_path, monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    from http_gateway.gateway import PolicyEngine
+
+    monkeypatch.setenv("POLICY_API_KEY", "test-key")
+    monkeypatch.setattr("socket.getaddrinfo", lambda *args, **kwargs: [])
+    for provider in ("", "modal"):
+        monkeypatch.setenv("POLICY_PROVIDER", provider)
+        engine = PolicyEngine(
+            GatewayStore(tmp_path / "state.sqlite3", tmp_path / "logs"),
+            SeedCorpus(tmp_path),
+        )
+        completion = AsyncMock(
+            return_value=SimpleNamespace(
+                choices=[
+                    SimpleNamespace(
+                        message=SimpleNamespace(
+                            content='{"action":"accept","reason":"test"}'
+                        )
+                    )
+                ]
+            )
+        )
+        engine.client = SimpleNamespace(
+            chat=SimpleNamespace(completions=SimpleNamespace(create=completion))
+        )
+        asyncio.run(engine.decide(request("https://example.test/page")))
+        kwargs = completion.call_args.kwargs
+        if provider:
+            assert kwargs["extra_body"] == {
+                "provider": {"only": [provider], "allow_fallbacks": False}
+            }
+        else:
+            assert "extra_body" not in kwargs

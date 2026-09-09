@@ -16,6 +16,7 @@ Environment:
   OPENROUTER_API_KEY         OpenRouter key used by the policy model
   POLICY_API_KEY             Optional override for OPENROUTER_API_KEY
   POLICY_BASE_URL            API base (default: https://openrouter.ai/api/v1)
+  POLICY_PROVIDER            Optional OpenRouter provider slug (no fallbacks)
   POLICY_MODEL               OpenRouter model ID (default: openai/gpt-5.6-luna)
   POLICY_CACHE_TTL_SECONDS   Default accepted-response cache TTL (86400)
   POLICY_CACHE_MAX_ENTRIES   Maximum cached responses (1000)

@@ -151,7 +151,7 @@ activemq-data/
 .env
 .envrc
 .venv
-inspect-stuff/gateway-state/
+/inspect-stuff/gateway-state*/
 env/
 venv/
 ENV/
@@ -213,6 +213,7 @@ inspect-bundle*.tar.gz
 /notes/
 
 # Generated offline-internet corpus (manifests remain tracked)
+/inspect-stuff/seed-data/pages.json
 /internet-download/data/
 /internet-download/benchmark-data/
 /internet-download/*.sqlite3

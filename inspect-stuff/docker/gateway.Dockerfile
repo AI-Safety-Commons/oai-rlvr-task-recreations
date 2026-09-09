@@ -2,8 +2,8 @@ FROM python:3.12-slim
 
 RUN groupadd --system gateway \
     && useradd --system --gid gateway --home /home/gateway gateway \
-    && mkdir -p /home/gateway/.mitmproxy /state \
-    && chown -R gateway:gateway /home/gateway /state
+    && mkdir -p /home/gateway/.mitmproxy /state /clock \
+    && chown -R gateway:gateway /home/gateway /state /clock
 
 COPY docker/gateway-requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
