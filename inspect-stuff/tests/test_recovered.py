@@ -83,7 +83,9 @@ def test_deadline_notice_and_wait_do_not_make_followup_late(monkeypatch):
     runtime.round_results = []
     runtime.task_time = 0
     monkeypatch.setattr(module, "_runtime", lambda: runtime)
-    state = SimpleNamespace(messages=[], output=SimpleNamespace(completion=""))
+    state = SimpleNamespace(
+        messages=[], metadata={}, output=SimpleNamespace(completion="")
+    )
 
     async def generate(state):
         if runtime.phase == "cooldown":

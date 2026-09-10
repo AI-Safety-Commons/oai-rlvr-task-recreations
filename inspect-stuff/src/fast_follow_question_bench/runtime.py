@@ -13,7 +13,9 @@ from inspect_ai.model import (
     ChatMessageSystem,
     ChatMessageUser,
     CompactionAuto,
+    ContentToolUse,
     compaction,
+    get_model,
 )
 from inspect_ai.scorer import Score, Target, mean, scorer, stderr
 from inspect_ai.solver import Generate, Solver, TaskState, solver
@@ -190,11 +192,31 @@ def clock_wait() -> Tool:
     return execute
 
 
+def _validate_cached_model() -> None:
+    """Fail before generation if hosted cache-only search cannot be guaranteed."""
+    from inspect_ai.model._providers.openai import OpenAIAPI
+
+    api = get_model().api
+    if (
+        type(api) is not OpenAIAPI
+        or str(api.client.base_url).rstrip("/") != "https://api.openai.com/v1"
+        or not api.responses_api
+    ):
+        raise ValueError(
+            "openai_cached requires an official openai/* model at "
+            "https://api.openai.com/v1 with responses_api=true"
+        )
+
+
 @solver
 def initialise_runtime(
-    randomized_followups: bool = False, followup_seed: int = 0
+    randomized_followups: bool = False,
+    followup_seed: int = 0,
+    tool_mode: str = "gateway",
 ) -> Solver:
     async def solve(state: TaskState, generate: Generate) -> TaskState:
+        if tool_mode == "openai_cached":
+            _validate_cached_model()
         runtime = _runtime()
         runtime.family = dict(state.metadata["family"])
         runtime.cohort = dict(state.metadata["cohort"])
@@ -267,9 +289,34 @@ def fast_follow_dialogue(
             else None
         )
 
+        async def generate_and_record(state: TaskState) -> TaskState:
+            start = len(state.messages)
+            state = await generate(state)
+            if state.metadata.get("tool_mode") == "openai_cached":
+                for message in state.messages[start:]:
+                    if isinstance(message.content, list):
+                        for content in message.content:
+                            if (
+                                isinstance(content, ContentToolUse)
+                                and content.tool_type == "web_search"
+                            ):
+                                # Hosted calls do not execute our timed tool wrappers.
+                                _advance_clock(runtime, 3)
+                                runtime.research_calls.append(
+                                    {
+                                        "round": runtime.round_index + 1,
+                                        "phase": runtime.phase,
+                                        "scope": "unknown",
+                                        "kind": content.name,
+                                        "arguments": content.arguments,
+                                        "cost": 3,
+                                    }
+                                )
+            return state
+
         async def generate_with_compaction(state: TaskState) -> TaskState:
             if compact is None:
-                return await generate(state)
+                return await generate_and_record(state)
 
             full_history = list(state.messages)
             model_input, supplemental = await compact.compact_input(full_history)
@@ -277,7 +324,7 @@ def fast_follow_dialogue(
             # transcript for scoring, logging, and later compaction passes.
             state.messages = model_input
             input_length = len(model_input)
-            state = await generate(state)
+            state = await generate_and_record(state)
             generated_messages = list(state.messages[input_length:])
             if supplemental is not None:
                 full_history.append(supplemental)
@@ -355,7 +402,9 @@ def fast_follow_dialogue(
                 runtime,
                 min(
                     max(0, next_round_starts_at - runtime.task_time),
-                    _response_cost(runtime, state.output.completion, minimum_response_cost),
+                    _response_cost(
+                        runtime, state.output.completion, minimum_response_cost
+                    ),
                 ),
             )
             # Once the agent yields, model its idle time until the already
@@ -368,10 +417,14 @@ def fast_follow_dialogue(
             )
             runtime.next_prompt_at = None
             next_entity = runtime.sequence[index + 1]
-            state.messages.append(ChatMessageSystem(content=(
-                f"[Task clock: {_task_clock(runtime, next_round_starts_at)}] "
-                f"You have {runtime.timing['followup_deadline_seconds']} task seconds."
-            )))
+            state.messages.append(
+                ChatMessageSystem(
+                    content=(
+                        f"[Task clock: {_task_clock(runtime, next_round_starts_at)}] "
+                        f"You have {runtime.timing['followup_deadline_seconds']} task seconds."
+                    )
+                )
+            )
             state.messages.append(
                 ChatMessageUser(content=f"Now, do the same for {next_entity}.")
             )
@@ -414,7 +467,7 @@ def fast_follow_scorer():
         runtime = _runtime()
         gateway_error = None
         token = str(state.metadata.get("gateway_control_token", ""))
-        if token:
+        if token and state.metadata.get("tool_mode") != "openai_cached":
             result = await sandbox().exec(
                 [
                     "curl",
