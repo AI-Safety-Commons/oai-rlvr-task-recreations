@@ -223,6 +223,7 @@ transcripts/
 /inspect-stuff/.cache/
 /inspect-stuff/src/fast_follow_question_bench/researchers.json
 /inspect-stuff/seed-data/pages.json
+/inspect-stuff/sitemap.xml
 /internet-download/data/
 /internet-download/benchmark-data/
 /internet-download/*.sqlite3

@@ -217,6 +217,10 @@ def initialise_runtime(
     async def solve(state: TaskState, generate: Generate) -> TaskState:
         if tool_mode == "openai_cached":
             _validate_cached_model()
+        elif tool_mode == "exa_cached":
+            from .exa_cached import validate_exa_key
+
+            validate_exa_key()
         runtime = _runtime()
         runtime.family = dict(state.metadata["family"])
         runtime.cohort = dict(state.metadata["cohort"])
@@ -518,7 +522,7 @@ def fast_follow_scorer():
         runtime = _runtime()
         gateway_error = None
         token = str(state.metadata.get("gateway_control_token", ""))
-        if token and state.metadata.get("tool_mode") != "openai_cached":
+        if token and state.metadata.get("tool_mode", "gateway") == "gateway":
             result = await sandbox().exec(
                 [
                     "curl",
