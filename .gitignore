@@ -211,6 +211,8 @@ inspect-bundle*/
 inspect-bundle*.tar.gz
 
 # Local research notes (not part of this repository)
+/analysis/
+transcripts/
 /notes/
 /inspect-stuff/analysis/
 
